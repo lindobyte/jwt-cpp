@@ -1142,21 +1142,21 @@ namespace jwt {
 					str += alphabet::base64url::fill();
 #ifdef __has_cpp_attribute
 #if __has_cpp_attribute(fallthrough)
-					[[fallthrough]];
+					//[[fallthrough]];
 #endif
 #endif
 				case 2:
 					str += alphabet::base64url::fill();
 #ifdef __has_cpp_attribute
 #if __has_cpp_attribute(fallthrough)
-					[[fallthrough]];
+					//[[fallthrough]];
 #endif
 #endif
 				case 3:
 					str += alphabet::base64url::fill();
 #ifdef __has_cpp_attribute
 #if __has_cpp_attribute(fallthrough)
-					[[fallthrough]];
+					//[[fallthrough]];
 #endif
 #endif
 				default:
@@ -1438,6 +1438,13 @@ namespace jwt {
 		 */
 		verifier& with_audience(const std::set<std::string>& aud) { return with_claim("aud", claim(aud)); }
 		/**
+		 * Set an audience to check for.
+		 * If any of the specified audiences is not present in the token the check fails.
+		 * \param aud Audience to check for.
+		 * \return *this to allow chaining
+		 */
+		verifier& with_audience(const std::string& aud) { return with_claim("aud", claim(aud)); }
+		/**
 		 * Set an id to check for.
 		 * Check is casesensitive.
 		 * \param id ID to check for.
@@ -1486,7 +1493,7 @@ namespace jwt {
 					if (c.as_date() != jc.as_date())
 						throw token_verification_exception("claim " + key + " does not match expected");
 				}
-				else if (c.get_type() == claim::type::array) {
+				/*else if (c.get_type() == claim::type::array) {
 					auto s1 = c.as_set();
 					auto s2 = jc.as_set();
 					if (s1.size() != s2.size())
@@ -1496,6 +1503,13 @@ namespace jwt {
 					while (it1 != s1.cend() && it2 != s2.cend()) {
 						if (*it1++ != *it2++)
 							throw token_verification_exception("claim " + key + " does not match expected");
+					}
+				}*/
+				else if (c.get_type() == claim::type::object || c.get_type() == claim::type::array) {
+					auto s1 = c.to_json().serialize();
+					auto s2 = jc.to_json().serialize();
+					if(s1.compare(s2) != 0) {
+						throw token_verification_exception("claim " + key + " does not match expected");
 					}
 				}
 				else if (c.get_type() == claim::type::string) {
