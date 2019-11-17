@@ -1475,7 +1475,8 @@ namespace jwt {
 		 * \param jwt Token to check
 		 * \throws token_verification_exception Verification failed
 		 */
-		void verify(const decoded_jwt& jwt) const {
+		void verify(const decoded_jwt& jwt,
+                    bool ignoreExpiresAt = false) const {
 			const std::string data = jwt.get_header_base64() + "." + jwt.get_payload_base64();
 			const std::string sig = jwt.get_signature();
 			const std::string& algo = jwt.get_algorithm();
@@ -1521,7 +1522,7 @@ namespace jwt {
 
 			auto time = clock.now();
 
-			if (jwt.has_expires_at()) {
+			if (jwt.has_expires_at() && !ignoreExpiresAt) {
 				auto leeway = claims.count("exp") == 1 ? std::chrono::system_clock::to_time_t(claims.at("exp").as_date()) : default_leeway;
 				auto exp = jwt.get_expires_at();
 				if (time > exp + std::chrono::seconds(leeway))
